@@ -112,7 +112,7 @@ def fast_map(k, O, D, col_num):
     # Update the id's of the pivot objects:
     PA[0, col_num] = a
     PA[1, col_num] = b
-    if (euclidean(O_a, O_b) == 0):
+    if D(O_a, O_b) == 0:
         for i, row in enumerate(X):
             X[i, col_num] = 0
             # If the distance between row_a and row_b is zero
