@@ -5,7 +5,7 @@ Implementation of the FastMap algorithm for Design and Analysis of Algorithms (C
 import math
 import numpy as np
 from sklearn.datasets import load_iris
-from scipy.spatial.distance import euclidean
+# from scipy.spatial.distance import euclidean
 
 __author__ = "Chris Campell & Patrick Beekman"
 __version__ = "11/21/2017"
@@ -17,6 +17,7 @@ PA = None
 col_num = None
 O_a = None
 O_b = None
+
 
 
 def object_coordinate(D, O_i, O_a, O_b):
@@ -32,6 +33,17 @@ def object_coordinate(D, O_i, O_a, O_b):
     return x_i
 
 
+def euclidean(O_i, O_j):
+    """
+    euclidean: Returns the euclidean distance between objects O_i, O_j
+    :param O_i: The first object
+    :param O_j: The second object
+    :return:
+    """
+    euclidean_dist = np.sqrt(np.sum([(x_1 - x_2)**2 for (x_1,x_2) in zip(O_i,O_j)]))
+    return euclidean_dist
+
+
 def d_prime(O_i, O_j, D=euclidean):
     """
     d_prime: Computes the Eculidean distance D'() between objects O_i and O_j after projection onto the H hyper-plane.
@@ -42,7 +54,7 @@ def d_prime(O_i, O_j, D=euclidean):
     """
     x_i = object_coordinate(D, O_i, O_a, O_b)
     x_j = object_coordinate(D, O_j, O_a, O_b)
-    d_prime = np.sqrt(math.pow(D(O_i, O_j), 2) - math.pow((x_i - x_j), 2))
+    d_prime = np.sqrt(math.pow(D(O_i, O_j),2) - math.pow((x_i - x_j), 2))
     return d_prime
 
 
@@ -83,8 +95,7 @@ def choose_dist_objects(O, D, alpha=5):
                     b = i
     return O_a, a, O_b, b
 
-
-def fast_map(k, D, O):
+def fast_map(k, O, D):
     """
     fast_map: A fast algorithm which maps objects into points in a user defined k-dimensional space while preserving dis-similarities.
     :param k: The desired dimensionality of the output mapping.
@@ -99,8 +110,8 @@ def fast_map(k, D, O):
     # Choose the pivot objects O_a and O_b:
     O_a, a, O_b, b = choose_dist_objects(O, D, 5)
     # Update the id's of the pivot objects:
-    PA[1, col_num] = a
-    PA[2, col_num] = b
+    PA[0, col_num] = a
+    PA[1, col_num] = b
     if (euclidean(O_a, O_b) == 0):
         for i, row in enumerate(X):
             X[i, col_num] = 0
@@ -112,10 +123,13 @@ def fast_map(k, D, O):
         # Update the global array:
         X[i, col_num] = x_i
     # Recurse:
-    fast_map(k - 1, O, d_prime)
-
+    fast_map(k - 1, O, D=d_prime)
 
 def main():
+    # Call fast-map. Once this function is done executing the i-th row of global matrix X will be the image of the i-th row in the kth dimension:
+    fast_map(k=k, O=O, D=euclidean)
+
+if __name__ == '__main__':
     # http://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html
     iris = load_iris()
     # Goal: Cluster different iris species using sepal length and width as features.
@@ -125,17 +139,13 @@ def main():
     # O is an N * k array:
     O = iris.data[:, :]
     y = iris.target  # 0, 1, 2
-    # Define an array X to hold the result of FastMap:
-    X = np.empty((len(O), k))
-    X[:] = np.NaN
+    # Create a column pointer which references the column of the X array currently being updated.
+    col_num = 0
     # Define the desired dimensionality of the output (k):
     k = 3
     # A 2 by k pivot array PA; stores the ids of the pivot objects- one pair per recursive call.
     PA = np.zeros((2, k))
-    # Create a column pointer which references the column of the X array currently being updated.
-    col_num = 0
-    # Call fast-map. Once this function is done executing the i-th row of global matrix X will be the image of the i-th row in the kth dimension:
-    fast_map(k=3, O=O, D=euclidean)
-
-if __name__ == '__main__':
+    # Define an array X to hold the result of FastMap:
+    X = np.empty((len(O), k))
+    X[:] = np.NaN
     main()
