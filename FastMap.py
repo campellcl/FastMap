@@ -118,7 +118,7 @@ def fast_map(k, O, D):
             # If the distance between row_a and row_b is zero
         return
     # Perform the projection onto line (O_a,O_b):
-    for i, row in enumerate(X):
+    for i, row in enumerate(O):
         x_i = object_coordinate(D, row, O_a, O_b)
         # Update the global array:
         X[i, col_num] = x_i
