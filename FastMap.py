@@ -95,14 +95,14 @@ def choose_dist_objects(O, D, alpha=5):
                     b = i
     return O_a, a, O_b, b
 
-def fast_map(k, O, D):
+def fast_map(k, O, D, col_num):
     """
     fast_map: A fast algorithm which maps objects into points in a user defined k-dimensional space while preserving dis-similarities.
     :param k: The desired dimensionality of the output mapping.
     :param D: A user-provided (preferribly domain-expert) distance function.
     :param O: A Sample-by-Feature matrix of objects to transform into a k-dimensional space.
     """
-    col_num = 0
+    #col_num = 0
     if (k <= 0):
         return
     else:
@@ -123,11 +123,11 @@ def fast_map(k, O, D):
         # Update the global array:
         X[i, col_num] = x_i
     # Recurse:
-    fast_map(k - 1, O, D=d_prime)
+    fast_map(k - 1, O, D=d_prime, col_num=col_num)
 
 def main():
     # Call fast-map. Once this function is done executing the i-th row of global matrix X will be the image of the i-th row in the kth dimension:
-    fast_map(k=k, O=O, D=euclidean)
+    fast_map(k=k, O=O, D=euclidean, col_num=0)
 
 if __name__ == '__main__':
     # http://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html
