@@ -127,7 +127,7 @@ def fast_map(k, O, D, col_num):
 
 def main():
     # Call fast-map. Once this function is done executing the i-th row of global matrix X will be the image of the i-th row in the kth dimension:
-    fast_map(k=k, O=O, D=euclidean, col_num=0)
+    fast_map(k=k, O=O, D=euclidean, col_num=-1)
 
 if __name__ == '__main__':
     # http://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html
