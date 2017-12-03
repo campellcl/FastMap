@@ -114,15 +114,15 @@ class FastMap:
         self.PA[0, self.col_num] = self.a
         self.PA[1, self.col_num] = self.b
         if D(self.O_a, self.O_b) == 0:
-            for i, row in enumerate(X):
-                X[i, self.col_num] = 0
+            for i, row in enumerate(self.X):
+                self.X[i, self.col_num] = 0
                 # If the distance between row_a and row_b is zero
             return
         # Perform the projection onto line (O_a,O_b):
         for i, row in enumerate(O):
             x_i = self.object_coordinate(D, row)
             # Update the global array:
-            X[i, self.col_num] = x_i
+            self.X[i, self.col_num] = x_i
         self.old_D = D
         # Recurse:
         self.fast_map(k - 1, O, D=self.d_prime, col_num=col_num)
@@ -141,12 +141,6 @@ def euclidean(O_i, O_j):
     return euclidean_dist
 
 def main():
-    # Call fast-map. Once this function is done executing the i-th row of global matrix X will be the image of the i-th row in the kth dimension:
-    fm = FastMap(k=k,O=O,D=euclidean,col_num=-1,PA=PA,X=X)
-    fm.fast_map(k=k,O=O,D=euclidean,col_num=-1)
-    pass
-
-if __name__ == '__main__':
     # http://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html
     iris = load_iris()
     # Goal: Cluster different iris species using sepal length and width as features.
@@ -165,4 +159,10 @@ if __name__ == '__main__':
     # Define an array X to hold the result of FastMap:
     X = np.empty((len(O), k))
     X[:] = np.NaN
+    # Call fast-map. Once this function is done executing the i-th row of global matrix X will be the image of the i-th row in the kth dimension:
+    fm = FastMap(k=k,O=O,D=euclidean,col_num=-1,PA=PA,X=X)
+    fm.fast_map(k=k,O=O,D=euclidean,col_num=-1)
+    pass
+
+if __name__ == '__main__':
     main()
