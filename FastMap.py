@@ -5,6 +5,8 @@ Implementation of the FastMap algorithm for Design and Analysis of Algorithms (C
 import math
 import numpy as np
 from sklearn.datasets import load_iris
+from sklearn.datasets import load_wine
+from sklearn import preprocessing
 # from scipy.spatial.distance import euclidean
 
 __author__ = "Chris Campell & Patrick Beekman"
@@ -69,6 +71,7 @@ class FastMap:
         """
         b = np.random.randint(0, len(O) - 1)
         O_b = O[b]
+        # a != b:
         if b is not 0:
             a = 0
         else:
@@ -113,6 +116,7 @@ class FastMap:
         # Update the id's of the pivot objects:
         self.PA[0, self.col_num] = self.a
         self.PA[1, self.col_num] = self.b
+        # TODO: Passing O_i=O_a incorrectly.
         if D(self.O_a, self.O_b) == 0:
             for i, row in enumerate(self.X):
                 self.X[i, self.col_num] = 0
@@ -149,6 +153,7 @@ def main():
     # Use all the features in the Iris Dataset {sepal length (cm), sepal width (cm), petal length (cm), petal width (cm)}:
     # O is an N * k array:
     O = iris.data[:, :]
+    # O = preprocessing.normalize(O)
     y = iris.target  # 0, 1, 2
     # Create a column pointer which references the column of the X array currently being updated.
     col_num = 0
