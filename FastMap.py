@@ -8,11 +8,13 @@ from sklearn.datasets import load_iris
 from sklearn.datasets import load_wine
 from sklearn import preprocessing
 # from scipy.spatial.distance import euclidean
+from scipy.spatial.distance import cdist, pdist
 
 __author__ = "Chris Campell & Patrick Beekman"
 __version__ = "11/21/2017"
 
 class FastMap:
+    # O: An
     O = None
     X = None
     k = None
@@ -43,7 +45,7 @@ class FastMap:
         x_i = (((D(self.O_a, O_i) ** 2) + (D(self.O_a, self.O_b) ** 2)) - (D(self.O_b, O_i) ** 2)) / (2 * D(self.O_a, self.O_b))
         return x_i
 
-    def d_prime(self, O_i, O_j):
+    def d_prime(self, O):
         """
         d_prime: Computes the Eculidean distance D'() between objects O_i and O_j after projection onto the H hyper-plane.
         :param D: The original Euclidean distance of object O_i and O_j prior to projection onto hyper-plane H.
@@ -52,6 +54,7 @@ class FastMap:
         :return d_prime: The Euclidean distance between objects O_i and O_j after projection onto the H hyper-plane.
         """
         # TODO: This object_coordinate call required O_a and O_b which are not being passed in. At execution time O_a is None.
+        x = np.zeros((len(O),k))
         x_i = self.object_coordinate(self.old_D, O_i)
         x_j = self.object_coordinate(self.old_D, O_j)
         d_prime = np.sqrt(math.pow(self.old_D(O_i, O_j),2) - math.pow((x_i - x_j), 2))
@@ -131,17 +134,14 @@ class FastMap:
         # Recurse:
         self.fast_map(k - 1, O, D=self.d_prime, col_num=col_num)
 
-def euclidean(O_i, O_j):
+
+def euclidean(O):
     """
-    euclidean: Returns the euclidean distance between objects O_i, O_j
-    :param O_i: The first object
-    :param O_j: The second object
+    euclidean: Returns the euclidean distance matrix for O.
+    :param O: The object (An n by m) matrix of the sample data.
     :return:
     """
-    try:
-        euclidean_dist = np.sqrt(np.sum([(x_1 - x_2)**2 for (x_1,x_2) in zip(O_i,O_j)]))
-    except TypeError:
-        pass
+    euclidean_dist = pdist(O, 'euclidean')
     return euclidean_dist
 
 def main():
