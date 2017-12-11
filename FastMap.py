@@ -7,7 +7,9 @@ import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.datasets import load_wine
 from sklearn import preprocessing
-# from scipy.spatial.distance import euclidean
+from scipy.spatial import distance
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 __author__ = "Chris Campell & Patrick Beekman"
 __version__ = "11/21/2017"
@@ -24,6 +26,15 @@ class FastMap:
     old_D = None
 
     def __init__(self, k, O, D, col_num, PA, X):
+        """
+
+        :param k:
+        :param O:
+        :param D: The N by m pairwise distance matrix D.
+        :param col_num:
+        :param PA:
+        :param X:
+        """
         self.k = k
         self.O = O
         self.D = D
@@ -31,30 +42,33 @@ class FastMap:
         self.PA = PA
         self.X = X
 
-    def object_coordinate(self, D, O_i):
+    def object_coordinate(self, D, i):
         """
         object_coordinate: Helper method for d_prime; computes the first coordinate (x_i)	 of the provided object O_i.
-        :param D: A user-provided (preferribly domain-expert) distance function.
+        :param D:
         :param O_i: The object/row O_i for which the x coordinate of the object is to be determined prior to projection onto hyper-plane H.
         :param O_a: The first pivot object computed by choose_dist_objects.
         :param O_b: The second pivot object computed by choose_dist_objects.
         :return x_i: The object coordiante of object i in relation to the provided pivot objects.
         """
-        x_i = (((D(self.O_a, O_i) ** 2) + (D(self.O_a, self.O_b) ** 2)) - (D(self.O_b, O_i) ** 2)) / (2 * D(self.O_a, self.O_b))
+        x_i = ((self.old_D[(self.a, i)] ** 2) + (self.old_D[(self.a, self.b)] ** 2) - (self.old_D[(self.b, i)] ** 2)) \
+              / (2 * self.old_D[(self.a, self.b)])
+        # x_i = (((D(self.O_a, O_i) ** 2) + (D(self.O_a, self.O_b) ** 2)) - (D(self.O_b, O_i) ** 2)) / (2 * D(self.O_a, self.O_b))
         return x_i
 
-    def d_prime(self, O_i, O_j):
+    def d_prime(self, O):
         """
         d_prime: Computes the Eculidean distance D'() between objects O_i and O_j after projection onto the H hyper-plane.
         :param D: The original Euclidean distance of object O_i and O_j prior to projection onto hyper-plane H.
-        :param O_i: Object O_i prior to projection onto the hyper-plane H.
-        :param O_j: Object O_j prior to projection onto the hyper-plane H.
         :return d_prime: The Euclidean distance between objects O_i and O_j after projection onto the H hyper-plane.
         """
-        # TODO: This object_coordinate call required O_a and O_b which are not being passed in. At execution time O_a is None.
-        x_i = self.object_coordinate(self.old_D, O_i)
-        x_j = self.object_coordinate(self.old_D, O_j)
-        d_prime = np.sqrt(math.pow(self.old_D(O_i, O_j),2) - math.pow((x_i - x_j), 2))
+        d_prime = np.empty((len(O), len(O)))
+        d_prime[:] = np.NaN
+        for i, O_i in enumerate(O):
+            for j, O_j in enumerate(O):
+                x_i = self.object_coordinate(self.old_D, i)
+                x_j = self.object_coordinate(self.old_D, j)
+                d_prime[(i,j)] = np.sqrt(math.pow(self.old_D[(i, j)],2) - math.pow((x_i - x_j), 2))
         return d_prime
 
 
@@ -83,7 +97,7 @@ class FastMap:
             # Get the object O_a farthest from O_b according to D(*,*)
             for i, O_i in enumerate(O):
                 if i != b:
-                    tmp = D(O_b, O_i)
+                    tmp = D[(b, i)]
                     if tmp > max_dist:
                         max_dist = tmp
                         O_a = O_i
@@ -92,7 +106,7 @@ class FastMap:
             max_dist = 0
             for i, O_i in enumerate(O):
                 if i != a:
-                    tmp = D(O_a, O_i)
+                    tmp = D[(a, i)]
                     if tmp > max_dist:
                         max_dist = tmp
                         O_b = O_i
@@ -103,7 +117,7 @@ class FastMap:
         """
         fast_map: A fast algorithm which maps objects into points in a user defined k-dimensional space while preserving dis-similarities.
         :param k: The desired dimensionality of the output mapping.
-        :param D: A user-provided (preferribly domain-expert) distance function.
+        :param D:
         :param O: A Sample-by-Feature matrix of objects to transform into a k-dimensional space.
         """
         #col_num = 0
@@ -117,32 +131,19 @@ class FastMap:
         self.PA[0, self.col_num] = self.a
         self.PA[1, self.col_num] = self.b
         # TODO: Passing O_i=O_a incorrectly.
-        if D(self.O_a, self.O_b) == 0:
+        if D[(self.a, self.b)] == 0:
             for i, row in enumerate(self.X):
                 self.X[i, self.col_num] = 0
                 # If the distance between row_a and row_b is zero
             return
         # Perform the projection onto line (O_a,O_b):
         for i, row in enumerate(O):
-            x_i = self.object_coordinate(D, row)
+            x_i = self.object_coordinate(D, i)
             # Update the global array:
             self.X[i, self.col_num] = x_i
         self.old_D = D
         # Recurse:
-        self.fast_map(k - 1, O, D=self.d_prime, col_num=col_num)
-
-def euclidean(O_i, O_j):
-    """
-    euclidean: Returns the euclidean distance between objects O_i, O_j
-    :param O_i: The first object
-    :param O_j: The second object
-    :return:
-    """
-    try:
-        euclidean_dist = np.sqrt(np.sum([(x_1 - x_2)**2 for (x_1,x_2) in zip(O_i,O_j)]))
-    except TypeError:
-        pass
-    return euclidean_dist
+        self.fast_map(k - 1, O, D=self.d_prime(O), col_num=col_num)
 
 def main():
     # http://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html
@@ -164,10 +165,23 @@ def main():
     # Define an array X to hold the result of FastMap:
     X = np.empty((len(O), k))
     X[:] = np.NaN
+    D = distance.squareform(distance.pdist(O, metric='euclidean'))
     # Call fast-map. Once this function is done executing the i-th row of global matrix X will be the image of the i-th row in the kth dimension:
-    fm = FastMap(k=k,O=O,D=euclidean,col_num=-1,PA=PA,X=X)
-    fm.fast_map(k=k,O=O,D=euclidean,col_num=-1)
-    pass
+    fm = FastMap(k=k,O=O,D=D,col_num=-1,PA=PA,X=X)
+    fm.old_D = D
+    fm.fast_map(k=k,O=O,D=D,col_num=-1)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    n = 100
+    # for c, m, zlow, zhigh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
+    xs = O[:,0]
+    ys = O[:,1]
+    zs = O[:,2]
+    ax.scatter(xs, ys, zs, c='r', marker='o')
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+    plt.show()
 
 if __name__ == '__main__':
     main()
