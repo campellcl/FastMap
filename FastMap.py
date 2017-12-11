@@ -147,14 +147,14 @@ class FastMap:
 
 def main():
     # http://scikit-learn.org/stable/auto_examples/datasets/plot_iris_dataset.html
-    iris = load_iris()
+    iris = load_wine()
     # Goal: Cluster different iris species using sepal length and width as features.
     # FastMap- Provide a distance function D(*,*). This distance function must be non-negative, symmetric, and obey the triangular inequality.
     # We will use the Euclidean distance L_{2} norm.
     # Use all the features in the Iris Dataset {sepal length (cm), sepal width (cm), petal length (cm), petal width (cm)}:
     # O is an N * k array:
     O = iris.data[:, :]
-    # O = preprocessing.normalize(O)
+    O = preprocessing.normalize(O)
     y = iris.target  # 0, 1, 2
     # Create a column pointer which references the column of the X array currently being updated.
     col_num = 0
@@ -174,14 +174,47 @@ def main():
     ax = fig.add_subplot(111, projection='3d')
     n = 100
     # for c, m, zlow, zhigh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
-    xs = O[:,0]
-    ys = O[:,1]
-    zs = O[:,2]
-    ax.scatter(xs, ys, zs, c='r', marker='o')
+    for i, target in enumerate(y):
+        if target == 0:
+            xs = X[i,0]
+            ys = X[i,1]
+            zs = X[i,2]
+            ax.scatter(xs, ys, zs, color='r', marker='o')
+        elif target == 1:
+            xs = X[i,0]
+            ys = X[i,1]
+            zs = X[i,2]
+            ax.scatter(xs, ys, zs, color='b', marker='^')
+        elif target == 2:
+            xs = X[i,0]
+            ys = X[i,1]
+            zs = X[i,2]
+            ax.scatter(xs, ys, zs, color='g', marker='*')
     ax.set_xlabel('X Label')
     ax.set_ylabel('Y Label')
     ax.set_zlabel('Z Label')
     plt.show()
+    # plt.clf()
+    # for i, target in enumerate(y):
+    #     if target == 0:
+    #         xs = X[i,0]
+    #         ys = X[i,1]
+    #         # zs = O[i,2]
+    #         # ax.scatter(xs, ys, zs, color='r', marker='o')
+    #         plt.scatter(xs, ys, color='r', marker='o')
+    #     elif target == 1:
+    #         xs = X[i,0]
+    #         ys = X[i,1]
+    #         # zs = O[i,2]
+    #         # ax.scatter(xs, ys, zs, color='b', marker='^')
+    #         plt.scatter(xs, ys, color='b', marker='^')
+    #     elif target == 2:
+    #         xs = X[i,0]
+    #         ys = X[i,1]
+    #         # zs = O[i,2]
+    #         # ax.scatter(xs, ys, zs, color='g', marker='*')
+    #         plt.scatter(xs, ys, color='g', marker='*')
+    # plt.show()
 
 if __name__ == '__main__':
     main()
