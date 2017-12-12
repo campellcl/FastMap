@@ -154,7 +154,9 @@ def main():
     # Use all the features in the Iris Dataset {sepal length (cm), sepal width (cm), petal length (cm), petal width (cm)}:
     # O is an N * k array:
     O = iris.data[:, :]
-    O = preprocessing.normalize(O)
+    min_max_scaler = preprocessing.MinMaxScaler()
+    O = min_max_scaler.fit_transform(O)
+    # O = preprocessing.normalize(O)
     y = iris.target  # 0, 1, 2
     # Create a column pointer which references the column of the X array currently being updated.
     col_num = 0
